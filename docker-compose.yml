@@ -116,20 +116,54 @@ services:
   # FLUME
   # ============================================================
   #Update this section in your docker-compose.yml
+  #flume:
+    #image: probablyfine/flume
+    #container_name: flume
+    #depends_on:
+     # - namenode
+    #volumes:
+     # - ./flume/flume.conf:/opt/flume-config/flume.conf
+     # - ./data:/data
+     # - ./hadoop:/opt/hadoop
+    #environment:
+    #  - FLUME_AGENT_NAME=agent
+    #  - FLUME_CONF_FILE=/opt/flume-config/flume.conf
+    #  - HADOOP_HOME=/opt/hadoop
+    #  - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+     # - FLUME_CLASSPATH=/opt/hadoop/share/hadoop/common/*:/opt/hadoop/share/hadoop/common/lib/*:/opt/hadoop/share/hadoop/hdfs/*:/opt/hadoop/share/hadoop/hdfs/lib/*
+    #networks:
+     # - bigdata-network
   flume:
-    image: probablyfine/flume
+    build:
+      context: ./flume
+      dockerfile: Dockerfile
     container_name: flume
     depends_on:
       - namenode
     volumes:
-      - ./flume/flum.conf:/opt/flume-config/flume.conf
+      - ./flume/flume.conf:/opt/flume-config/flume.conf
       - ./data:/data
     environment:
       - FLUME_AGENT_NAME=agent
       - FLUME_CONF_FILE=/opt/flume-config/flume.conf
+    command: tail -f /dev/null 
     networks:
       - bigdata-network
-
+      
+ 
+  nifi:
+    image: apache/nifi:1.23.2
+    container_name: nifi
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./data:/data
+      - ./hadoop:/opt/hadoop
+    environment:
+      - SINGLE_USER_CREDENTIALS_USERNAME=admin
+      - SINGLE_USER_CREDENTIALS_PASSWORD=adminadmin12345
+    networks:
+      - bigdata-network
 # ============================================================
   # KAFKA APP (Producer + Consumer Python)
   # ============================================================
